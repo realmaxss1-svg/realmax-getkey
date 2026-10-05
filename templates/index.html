@@ -1,1 +1,200 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REALMAX GETKEY</title>
 
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #05070d;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+.card {
+    width: 92%;
+    max-width: 500px;
+    padding: 30px;
+    border-radius: 22px;
+    background: #0b101a;
+    border: 1px solid #168cff;
+    box-shadow: 0 0 35px #168cff33;
+}
+
+.logo {
+    text-align: center;
+    font-size: 35px;
+    font-weight: bold;
+    color: #38b6ff;
+    letter-spacing: 4px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #8293a8;
+    margin: 8px 0 25px;
+}
+
+label {
+    display: block;
+    margin-bottom: 7px;
+}
+
+select,
+input,
+button {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 15px;
+}
+
+select,
+input {
+    background: #060a11;
+    color: white;
+    border: 1px solid #26384d;
+    margin-bottom: 10px;
+}
+
+button {
+    border: none;
+    background: #159cff;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+button.secondary {
+    background: #111b29;
+    border: 1px solid #245174;
+}
+
+.key {
+    display: none;
+    padding: 16px;
+    margin: 10px 0 20px;
+    border: 1px dashed #29b6ff;
+    border-radius: 10px;
+    text-align: center;
+    color: #55caff;
+    word-break: break-all;
+    font-size: 20px;
+}
+
+.status {
+    text-align: center;
+    color: #8293a8;
+    margin-top: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <div class="logo">REALMAX</div>
+
+    <div class="subtitle">
+        GETKEY • ONLINE LICENSE
+    </div>
+
+    <label>เลือกระยะเวลา Key</label>
+
+    <select id="duration">
+        <option value="1d">1 วัน</option>
+        <option value="7d">7 วัน</option>
+        <option value="30d">30 วัน</option>
+        <option value="lifetime">Lifetime</option>
+    </select>
+
+    <button onclick="getKey()">
+        GET FREE KEY
+    </button>
+
+    <div id="generatedKey" class="key"></div>
+
+    <input
+        id="verifyInput"
+        placeholder="REAL-XXXX-XXXX-XXXX"
+    >
+
+    <button class="secondary" onclick="verifyKey()">
+        VERIFY KEY
+    </button>
+
+    <div id="status" class="status">
+        กำลังเชื่อมต่อ...
+    </div>
+
+</div>
+
+<script>
+
+async function getKey() {
+
+    const response = await fetch("/api/getkey", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            duration: document.getElementById("duration").value
+        })
+    });
+
+    const data = await response.json();
+
+    const box = document.getElementById("generatedKey");
+
+    if (data.key) {
+        box.style.display = "block";
+        box.textContent = data.key;
+    } else {
+        box.style.display = "block";
+        box.textContent = data.error || "เกิดข้อผิดพลาด";
+    }
+}
+
+async function verifyKey() {
+
+    const key = document
+        .getElementById("verifyInput")
+        .value
+        .trim();
+
+    if (!key) {
+        document.getElementById("status").textContent =
+            "กรุณาใส่ Key";
+        return;
+    }
+
+    const response = await fetch("/api/verify", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            key: key
+        })
+    });
+
+    const data = await response.json();
+
+    if (data.valid) {
+        document.getElementById("status").textContent =
+            "✓ Key ใช้งานได้";
+    } else {
+        document
